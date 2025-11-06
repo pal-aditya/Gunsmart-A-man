@@ -74,16 +74,24 @@ export async function GET(request: NextRequest) {
         if (!userFromDatabase) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
-    var sortedData = userFromDatabase.idProduct.map((cardId: string, index: number) => {
-      const item = Data.find((item: any) => Number(item.id) === Number(cardId));
-      if (!item) return null;
-      const quantity = Number(userFromDatabase.Quantity[index]) || 0;
-      return { ...item, quantity };
-    }).filter(Boolean);
+    const consolidatedCart = userFromDatabase.idProduct.reduce((acc: any, cardId: string, index: number) => {
+      if (!acc[cardId]) {
+        const item = Data.find((item: any) => Number(item.id) === Number(cardId));
+        if (item) {
+          acc[cardId] = { ...item, quantity: 0 };
+        }
+      }
+      if (acc[cardId]) {
+        acc[cardId].quantity += Number(userFromDatabase.Quantity[index]) || 0;
+      }
+      return acc;
+    }, {});
 
-        var salePriceTotal = 0;
-        var retailPriceTotal = 0;
-        
+    let sortedData:any = Object.values(consolidatedCart);
+
+        let salePriceTotal = 0;
+        let retailPriceTotal = 0;
+
         for (let i = 0; i < sortedData.length; i++) {
             const quantity = Number(sortedData[i].quantity) || 0;
             const salePrice = Number((sortedData[i].salePrice || "").toString().substring(1)) || 0;

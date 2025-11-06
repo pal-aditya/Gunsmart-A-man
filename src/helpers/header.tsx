@@ -26,6 +26,7 @@ const Header = () => {
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
+          console.log("RedisCache :", data.user.cacheStatus);
         } else {
           setUser(null);
         }
