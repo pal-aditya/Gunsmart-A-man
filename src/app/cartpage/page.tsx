@@ -56,6 +56,7 @@ import { useRouter } from 'next/navigation';
       setItemLoading(prev => ({ ...prev, [db]: true }))
       const response = await axios.post("../api/cartPlus", { plus: db, amount }, { withCredentials: true })
       if (response.data?.error) throw new Error(response.data.error)
+      console.log(response.data?.cacheStatus || "Cache status unknown")
       await fetchData()
     } catch (err:any) {
       console.error('sendPlusRequest failed', err.message)
@@ -67,20 +68,21 @@ import { useRouter } from 'next/navigation';
 
   const handlePlusClick = (db: any) => {
     if (!db) return
-    setPendingDeltas(prev => ({ ...prev, [db]: (prev[db] || 0) + 1 }))
+    // Cancel any pending operations first
+    setPendingDeltas(prev => {
+      const copy = { ...prev }
+      delete copy[db] // Clear any pending operations for this item
+      return copy
+    })
+    
     const existing = timersRef.current[db]
-    if (existing) clearTimeout(existing as any)
-    timersRef.current[db] = setTimeout(() => {
-      const amount = pendingDeltas[db] ?? 0
-      setPendingDeltas((latest) => {
-        const finalAmount = latest[db] ?? 0
-        if (finalAmount !== 0) sendPlusRequest(db, finalAmount)
-        const copy = { ...latest }
-        delete copy[db]
-        return copy
-      })
+    if (existing) {
+      clearTimeout(existing as any)
       timersRef.current[db] = null
-    }, 500)
+    }
+    
+    // Send the request immediately for a single increment
+    sendPlusRequest(db, 1)
   }
   
   const sendMinusRequest = async (db: string, amount: number) => {
@@ -88,6 +90,7 @@ import { useRouter } from 'next/navigation';
       setItemLoading(prev => ({ ...prev, [db]: true }))
       const response = await axios.post("../api/cartMinus", { minus: db, amount }, { withCredentials: true })
       if (response.data?.error) throw new Error(response.data.error)
+      console.log(response.data?.cacheStatus || "Cache status unknown")
       await fetchData()
     } catch (err:any) {
       console.error('sendMinusRequest failed', err.message)
@@ -99,6 +102,17 @@ import { useRouter } from 'next/navigation';
 
   const handleMinusClick = (db: any) => {
     if (!db) return
+    
+    // Find the current item quantity
+    const currentItem = dataFromCart.find(item => item.id === db);
+    if (!currentItem) return;
+    
+    // If quantity is 1, treat it as a remove operation
+    if (currentItem.quantity === 1) {
+      handleRemoveClick(db);
+      return;
+    }
+    
     setPendingDeltas(prev => ({ ...prev, [db]: (prev[db] || 0) - 1 }))
     const existing = timersRef.current[db]
     if (existing) clearTimeout(existing as any)
@@ -114,15 +128,18 @@ import { useRouter } from 'next/navigation';
         return copy
       })
       timersRef.current[db] = null
-
-
     }, 500)
   }
   const handleRemoveClick = async (d: any) => {
     if (!d) return
     setItemLoading(prev => ({ ...prev, [d]: true }))
     try {
-      const response = await axios.post("../api/cartMinus", { remove: d }, { withCredentials: true })
+      const response = await axios.post("../api/cartMinus", { 
+        remove: d, 
+        skipCache: true // Signal to bypass cache for removal
+      }, { 
+        withCredentials: true 
+      })
       if (response.data?.error) throw new Error(response.data.error)
       await fetchData()
     } catch (err:any) {

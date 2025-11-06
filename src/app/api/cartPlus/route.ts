@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbconfig/dbconfig";
 import User from "@/models/userModel";
 import jwt from "jsonwebtoken";
+import redis from "@/lib/redis";
 
 connect();
 
@@ -25,9 +26,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    const userInDatabase = await User.findById(decoded.id);
-    if (!userInDatabase) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const cacheKey = `cart:${decoded.id}`;
+    let userInDatabase;
+    let cacheHit = false;
+
+    const cachedCart = await redis.get(cacheKey);
+    if (cachedCart) {
+      userInDatabase = JSON.parse(cachedCart);
+      cacheHit = true;
+    } 
+    
+    if (!cachedCart) {
+      userInDatabase = await User.findById(decoded.id);
+      if (!userInDatabase) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      await redis.setex(cacheKey, 3600, JSON.stringify(userInDatabase));
     }
 
     if (!Array.isArray(userInDatabase.idProduct)) userInDatabase.idProduct = [];
@@ -39,21 +53,34 @@ export async function POST(request: NextRequest) {
     if (index === -1) {
       await User.findByIdAndUpdate(
         decoded.id,
-        { $push: { idProduct: plusIdStr, Quantity: amount } },
-        { new: true }
+        { $push: { idProduct: plusIdStr, Quantity: amount } }
       );
 
-      return NextResponse.json({ message: "Item added to cart", success: true });
+      userInDatabase.idProduct.push(plusIdStr);
+      userInDatabase.Quantity.push(amount);
+      await redis.setex(cacheKey, 3600, JSON.stringify(userInDatabase));
+
+      return NextResponse.json({ 
+        message: "Item added to cart", 
+        success: true,
+        cacheStatus: cacheHit ? "Cache hit" : "Cache miss" 
+      });
     }
 
     const currentQty = Number(userInDatabase.Quantity[index] ?? 0);
+    
     await User.findByIdAndUpdate(
       decoded.id,
-      { $set: { [`Quantity.${index}`]: currentQty + amount } },
-      { new: true }
+      { $set: { [`Quantity.${index}`]: currentQty + amount } }
     );
+    userInDatabase.Quantity[index] = currentQty + amount;
+    await redis.setex(cacheKey, 3600, JSON.stringify(userInDatabase));
 
-    return NextResponse.json({ message: "Item quantity increased", success: true });
+    return NextResponse.json({ 
+      message: "Item quantity increased", 
+      success: true,
+      cacheStatus: cacheHit ? "Cache hit" : "Cache miss"  
+    });
   } catch (error: any) {
     console.error("cartPlus error:", error);
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
