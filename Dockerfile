@@ -12,6 +12,9 @@ COPY . .
 # Copy production env file
 COPY .env.production .env.production
 
+#ARG SKIP_DB_CONNECT=true
+#ENV SKIP_DB_CONNECT=$SKIP_DB_CONNECT
+
 # Build Next.js app with env
 RUN npm run build
 

@@ -1,3 +1,4 @@
+import { redis } from '@/lib/redis';
 import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbconfig/dbconfig";
 import User from "@/models/userModel";

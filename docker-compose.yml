@@ -1,37 +1,75 @@
+version: "3.9"
+
 services:
-  nextjs-app1:
-    container_name: nextjs-app1
-    build:
-      context: .
-    expose:
-      - "3000"
-    environment:
-      - NODE_ENV=production
+  redis:
+    image: redis:7
+    container_name: redis
     restart: always
+    ports:
+      - "6379:6379"
     networks:
       - webnet
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+#      - webnet
+
+  mongo:
+    image: mongo:4.4
+    container_name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: gunsmart
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - webnet
+
+
+  nextjs-app1:
+    build:
+      context: .
+    container_name: nextjs-app1
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongo:27017/gunsmart
+      REDIS_URL: redis://redis:6379
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_test_dummy
+      STRIPE_SECRET_KEY: sk_test_dummy
+      JWT_SECRET_KEY: alpha090
+      JWT_SECRET: alpha090
+    depends_on:
+      - redis
+      - mongo
+    expose:
+      - "3000"
+    networks:
+      - webnet
 
   nextjs-app2:
-    container_name: nextjs-app2
     build:
       context: .
+    container_name: nextjs-app2
+    environment:
+      NODE_ENV: production
+      MONGODB_URI: mongodb://mongo:27017/gunsmart
+      REDIS_URL: redis://redis:6379
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_test_dummy
+      STRIPE_SECRET_KEY: sk_test_dummy
+      JWT_SECRET_KEY: alpha090
+      JWT_SECRET: alpha090
+    depends_on:
+      - redis
+      - mongo
     expose:
       - "3000"
-    environment:
-      - NODE_ENV=production
-    restart: always
     networks:
       - webnet
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   nginx:
     container_name: nginx
@@ -49,3 +87,6 @@ services:
 
 networks:
   webnet:
+
+volumes:
+  mongo_data:

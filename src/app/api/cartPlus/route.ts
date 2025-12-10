@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbconfig/dbconfig";
 import User from "@/models/userModel";
 import jwt from "jsonwebtoken";
-import redis from "@/lib/redis";
+import { redis } from '@/lib/redis';
 
 connect();
 
