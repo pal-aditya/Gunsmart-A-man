@@ -10,7 +10,7 @@ RUN npm install
 COPY . .
 
 # Copy production env file
-COPY .env.production .env.production
+#COPY .env.production .env.production
 
 #ARG SKIP_DB_CONNECT=true
 #ENV SKIP_DB_CONNECT=$SKIP_DB_CONNECT
@@ -30,7 +30,7 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./package.json
 COPY --from=base /app/src ./src
 COPY --from=base /app/next.config.js ./next.config.js
-COPY --from=base /app/.env.production .env.production
+#COPY --from=base /app/.env.production .env.production
 
 EXPOSE 3000
 CMD ["npm", "start"]

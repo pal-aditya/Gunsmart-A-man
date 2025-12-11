@@ -5,6 +5,8 @@ services:
     image: redis:7
     container_name: redis
     restart: always
+    env_file:
+      - .env.production
     ports:
       - "6379:6379"
     networks:
@@ -29,17 +31,18 @@ services:
     build:
       context: .
     container_name: nextjs-app1
-    environment:
-      NODE_ENV: production
-      MONGODB_URI: mongodb://mongo:27017/gunsmart
-      REDIS_URL: redis://redis:6379
+    env_file:
+      - .env.production
+#      NODE_ENV: production
+#      MONGODB_URI: mongodb://mongo:27017/gunsmart
+#      REDIS_URL: redis://redis:6379
 #      REDIS_HOST: redis
 #      REDIS_PORT: 6379
-      NEXT_PUBLIC_API_URL: /api
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_test_dummy
-      STRIPE_SECRET_KEY: sk_test_dummy
-      JWT_SECRET_KEY: alpha090
-      JWT_SECRET: alpha090
+#      NEXT_PUBLIC_API_URL: /api
+#      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_test_dummy
+#      STRIPE_SECRET_KEY: sk_test_dummy
+#      JWT_SECRET_KEY: alpha090
+#      JWT_SECRET: alpha090
     depends_on:
       - redis
       - mongo
@@ -52,17 +55,18 @@ services:
     build:
       context: .
     container_name: nextjs-app2
-    environment:
-      NODE_ENV: production
-      MONGODB_URI: mongodb://mongo:27017/gunsmart
-      REDIS_URL: redis://redis:6379
+    env_file:
+      - .env.production
+#      NODE_ENV: production
+#      MONGODB_URI: mongodb://mongo:27017/gunsmart
+#      REDIS_URL: redis://redis:6379
 #      REDIS_HOST: redis
 #      REDIS_PORT: 6379
-      NEXT_PUBLIC_API_URL: /api
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_test_dummy
-      STRIPE_SECRET_KEY: sk_test_dummy
-      JWT_SECRET_KEY: alpha090
-      JWT_SECRET: alpha090
+#      NEXT_PUBLIC_API_URL: /api
+#      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: pk_test_dummy
+#      STRIPE_SECRET_KEY: sk_test_dummy
+#      JWT_SECRET_KEY: alpha090
+#      JWT_SECRET: alpha090
     depends_on:
       - redis
       - mongo
