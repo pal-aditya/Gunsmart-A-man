@@ -1,5 +1,14 @@
 # Guns-Mart - Next.js Guns Shopping App
 
+# Note to self
+## 1. Use the docker hub and push images
+## 2. Use only compose file
+## 3. Create an terraform script 
+- Install the docker and compose
+- Pull the repository
+- Run docker compose
+- Will use the Packer for baking an golden image for this
+
 Guns-Mart is a modern guns shopping app built with Next.js, React, and other technologies. It provides users with a seamless shopping experience for purchasing firearms. 
 
 ## Features
@@ -11,10 +20,6 @@ Guns-Mart is a modern guns shopping app built with Next.js, React, and other tec
 - User can authenticate themselves using Bcrypt and JWT
 - Implemented payment gateway with "Stripe".
 
-## Loom video explaining the DevOps Integration
-   ![image](https://static.vecteezy.com/system/resources/thumbnails/054/991/406/small_2x/link-below-and-arrows-perfect-for-directing-viewers-to-websites-blogs-or-online-content-useful-for-digital-marketing-free-video.jpg)
-   
- # [![Watch the Loom Video](https://cdn.loom.com/sessions/thumbnails/5ca7261c5ad14518b872bece8ee84d78-with-timestamp.png)](https://www.loom.com/share/5ca7261c5ad14518b872bece8ee84d78)
 
 ## Technologies Used
 
@@ -27,10 +32,6 @@ Guns-Mart is a modern guns shopping app built with Next.js, React, and other tec
 - MongoDb
 - DaisyUi(For tailwind's customised buttons)
 - JavaScript
-
-## Visit the Website
-
-Explore the Guns-Mart app by visiting [https://gunmart.vercel.app/mainpage](https://gunmart.vercel.app/mainpage).
 
 ## Pages to Visit
 
